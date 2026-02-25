@@ -64,7 +64,7 @@ def main() -> None:
 
     # --- Offline Model Accuracy (from training metadata) ---
     st.header("🎓 Offline Training Metrics")
-    metadata_path = "api/models/model_metadata.json"
+    metadata_path = os.getenv("MODEL_METADATA_PATH", "api/models/model_metadata.json")
     if os.path.exists(metadata_path):
         with open(metadata_path, "r") as f:
             metadata = json.load(f)

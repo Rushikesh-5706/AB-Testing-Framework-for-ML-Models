@@ -39,6 +39,7 @@ services:
     environment:
       - DATABASE_NAME=/app/data/ab_test_logs.db
       - RESULTS_PATH=/app/analysis/results.json
+      - MODEL_METADATA_PATH=/app/api/models/model_metadata.json
     command: [ "streamlit", "run", "analysis/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true" ]
     depends_on:
       api:

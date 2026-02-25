@@ -26,45 +26,45 @@ A production-grade A/B testing framework designed for comparing machine learning
 
 The framework consists of three core services working together through a shared SQLite database:
 
-```
+```text
                           Incoming Prediction Requests
                                      |
                                      v
                     +--------------------------------+
-                    |        FastAPI Service          |
-                    |        (Port 8000)              |
-                    |                                 |
-                    |   +-------------------------+   |
-                    |   |    Traffic Splitter      |   |
-                    |   | (configurable 50/50,     |   |
-                    |   |  70/30, session-sticky)  |   |
-                    |   +--------+--------+-------+   |
-                    |            |        |           |
-                    |            v        v           |
-                    |   +--------+--+ +---+-------+   |
-                    |   | Model A   | | Model B   |   |
-                    |   | Logistic  | | XGBoost   |   |
-                    |   | Regr.     | | Classifier|   |
-                    |   +-----------+ +-----------+   |
-                    |            |        |           |
-                    |            v        v           |
-                    |   +-------------------------+   |
-                    |   |   Async SQLite Logger   |   |
-                    |   |   (WAL mode via         |   |
-                    |   |    aiosqlite)            |   |
-                    |   +------------+------------+   |
-                    +----------------|----------------+
-                                     |
-                                     v
+                    |        FastAPI Service         |
+                    |        (Port 8000)             |
+                    |                                |
+                    |   +------------------------+   |
+                    |   |    Traffic Splitter    |   |
+                    |   | (configurable 50/50,   |   |
+                    |   |  70/30, session-sticky)|   |
+                    |   +-------+--------+-------+   |
+                    |           |        |           |
+                    |           v        v           |
+                    |   +-------+---+ +--+-------+   |
+                    |   | Model A   | | Model B  |   |
+                    |   | Logistic  | | XGBoost  |   |
+                    |   | Regr.     | | Class.   |   |
+                    |   +-----------+ +----------+   |
+                    |           |        |           |
+                    |           v        v           |
+                    |   +------------------------+   |
+                    |   |  Async SQLite Logger   |   |
+                    |   |  (WAL mode via         |   |
+                    |   |   aiosqlite)           |   |
+                    |   +-----------+------------+   |
+                    +---------------|----------------+
+                                    |
+                                    v
                     +--------------------------------+
-                    |    SQLite Database              |
-                    |    data/ab_test_logs.db         |
-                    |    (persistent volume mount)    |
-                    +----------------|----------------+
-                                     |
-                    +----------------+----------------+
-                    |                                 |
-                    v                                 v
+                    |    SQLite Database             |
+                    |    data/ab_test_logs.db        |
+                    |    (persistent volume mount)   |
+                    +---------------|----------------+
+                                    |
+                    +---------------+----------------+
+                    |                                |
+                    v                                v
     +---------------------------+   +---------------------------+
     |   Analysis Pipeline       |   |   Streamlit Dashboard     |
     |   (run_analysis.py)       |   |   (Port 8501)             |
@@ -163,7 +163,7 @@ pip install -r api/requirements.txt
 This trains two model variants on the Breast Cancer Wisconsin dataset (built into scikit-learn, no external downloads required):
 
 ```bash
-python train_models.py
+python3 train_models.py
 ```
 
 Expected output:
@@ -217,13 +217,13 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 In a separate terminal, simulate traffic:
 
 ```bash
-python scripts/simulate_traffic.py --num-requests 500
+python3 scripts/simulate_traffic.py --num-requests 500
 ```
 
 Run the analysis pipeline:
 
 ```bash
-python analysis/run_analysis.py
+python3 analysis/run_analysis.py
 ```
 
 Start the dashboard:
@@ -268,13 +268,13 @@ Expected response:
 Simulate traffic:
 
 ```bash
-python scripts/simulate_traffic.py --num-requests 500
+python3 scripts/simulate_traffic.py --num-requests 500
 ```
 
 Run analysis:
 
 ```bash
-python analysis/run_analysis.py
+python3 analysis/run_analysis.py
 ```
 
 View the dashboard at: http://localhost:8501
@@ -399,7 +399,7 @@ All tests use a significance level of alpha = 0.05.
 Run the analysis:
 
 ```bash
-python analysis/run_analysis.py
+python3 analysis/run_analysis.py
 ```
 
 Results are saved to `analysis/results.json`.
@@ -529,7 +529,7 @@ As defined in `submission.yml`:
 
 ```bash
 pip install -r api/requirements.txt
-python train_models.py
+python3 train_models.py
 docker-compose build
 ```
 
@@ -538,7 +538,7 @@ docker-compose build
 ```bash
 docker-compose up -d
 sleep 10
-curl -s http://localhost:8000/health | python -m json.tool
+curl -s http://localhost:8000/health | python3 -m json.tool
 ```
 
 ### Test
@@ -550,8 +550,8 @@ pytest tests/ -v --tb=short
 ### Analyze
 
 ```bash
-python scripts/simulate_traffic.py --num-requests 500 --delay-ms 5
-python analysis/run_analysis.py
+python3 scripts/simulate_traffic.py --num-requests 500 --delay-ms 5
+python3 analysis/run_analysis.py
 ```
 
 The dashboard is accessible at http://localhost:8501 after running `docker-compose up -d`.

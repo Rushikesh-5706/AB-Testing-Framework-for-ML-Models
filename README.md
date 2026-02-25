@@ -19,6 +19,7 @@ A production-grade A/B testing framework designed for comparing machine learning
 11. [Docker Deployment](#docker-deployment)
 12. [Environment Variables](#environment-variables)
 13. [Submission Commands](#submission-commands)
+14. [Methodology](METHODOLOGY.md)
 
 ---
 
@@ -555,3 +556,11 @@ python3 analysis/run_analysis.py
 ```
 
 The dashboard is accessible at http://localhost:8501 after running `docker-compose up -d`.
+
+---
+
+## Methodology
+
+The experimental design, hypothesis, chosen metrics, statistical tests, and success
+criteria for selecting a winning model are documented in
+[METHODOLOGY.md](METHODOLOGY.md).

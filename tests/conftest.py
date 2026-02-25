@@ -46,24 +46,25 @@ def temp_db_path():
 def test_client(mock_models, temp_db_path):
     """Create a FastAPI test client with mock models and temporary database."""
     import api.main as main_module
+    from api.traffic_splitter import TrafficSplitter
 
     original_models = main_module.models.copy()
     original_db_path = main_module.db.db_path
+    original_connection = main_module.db._connection
 
     main_module.models.update(mock_models)
     main_module.db.db_path = temp_db_path
+    main_module.db._connection = None  # force lifespan to initialize fresh
+    main_module.splitter.update_ratio(0.5)  # reset to default before each test
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main_module.db.initialize())
+    with TestClient(main_module.app) as client:
+        yield client
 
-    client = TestClient(main_module.app)
-    yield client
-
-    loop.run_until_complete(main_module.db.close())
-    loop.close()
+    main_module.splitter.update_ratio(0.5)  # reset after test too
     main_module.models.clear()
     main_module.models.update(original_models)
     main_module.db.db_path = original_db_path
+    main_module.db._connection = original_connection
 
 
 @pytest.fixture

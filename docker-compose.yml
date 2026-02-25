@@ -11,11 +11,13 @@ services:
     volumes:
       - ./data:/app/data
       - ./api/models:/app/api/models
+      - ./analysis:/app/analysis
     environment:
       - DATABASE_NAME=/app/data/ab_test_logs.db
       - MODEL_A_PATH=/app/api/models/model_A.pkl
       - MODEL_B_PATH=/app/api/models/model_B.pkl
       - MODEL_A_RATIO=0.5
+      - RESULTS_PATH=/app/analysis/results.json
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]

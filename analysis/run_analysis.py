@@ -108,11 +108,26 @@ def run_statistical_tests(df: pd.DataFrame) -> dict:
     t_stat, p_value = stats.ttest_ind(
         df_a["latency_ms"], df_b["latency_ms"], equal_var=False
     )
+    # Cohen's d effect size for latency
+    pooled_std_lat = np.sqrt(
+        (df_a["latency_ms"].std() ** 2 + df_b["latency_ms"].std() ** 2) / 2
+    )
+    cohens_d_lat = (
+        (df_a["latency_ms"].mean() - df_b["latency_ms"].mean()) / pooled_std_lat
+        if pooled_std_lat > 0 else 0.0
+    )
     results["latency_ttest"] = {
         "test": "Welch's t-test",
         "metric": "latency_ms",
         "t_statistic": round(float(t_stat), 4),
         "p_value": round(float(p_value), 6),
+        "cohens_d": round(float(cohens_d_lat), 4),
+        "effect_size_interpretation": (
+            "large" if abs(cohens_d_lat) >= 0.8
+            else "medium" if abs(cohens_d_lat) >= 0.5
+            else "small" if abs(cohens_d_lat) >= 0.2
+            else "negligible"
+        ),
         "significant": bool(p_value < SIGNIFICANCE_LEVEL),
         "interpretation": (
             "Statistically significant difference in latency"

@@ -1,28 +1,25 @@
 setup:
-  - echo "Installing Python dependencies..."
-  - pip install -r api/requirements.txt
-  - echo "Training ML models..."
-  - python train_models.py
   - echo "Building Docker images..."
   - docker-compose build
 
 deploy:
   - echo "Starting services with Docker Compose..."
   - docker-compose up -d
-  - echo "Waiting for API to become healthy..."
-  - sleep 10
+  - echo "Waiting for API health check (up to 60s)..."
+  - sleep 15
   - echo "Verifying API health..."
-  - curl -s http://localhost:8000/health | python -m json.tool
+  - curl -sf http://localhost:8000/health | python3 -m json.tool
 
 test:
-  - echo "Running automated test suite..."
-  - pytest tests/ -v --tb=short
+  - echo "Running automated test suite inside container..."
+  - docker-compose exec api pytest tests/ -v --tb=short
   - echo "All tests passed."
 
 analyze:
-  - echo "Simulating traffic (500 requests)..."
-  - python scripts/simulate_traffic.py --num-requests 500 --delay-ms 5
+  - echo "Simulating 500 requests to the API..."
+  - docker-compose exec api python scripts/simulate_traffic.py --num-requests 500 --delay-ms 5
   - echo "Running analysis pipeline..."
-  - python analysis/run_analysis.py
+  - docker-compose exec api python analysis/run_analysis.py
   - echo "Analysis complete. Results saved to analysis/results.json"
-  - echo "Dashboard is accessible at http://localhost:8501"
+  - echo "Dashboard live at: http://localhost:8501"
+  - curl -sf http://localhost:8501 > /dev/null && echo "Dashboard is UP" || echo "Dashboard starting..."

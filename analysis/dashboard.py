@@ -62,6 +62,40 @@ def main() -> None:
         )
         return
 
+    # --- Offline Model Accuracy (from training metadata) ---
+    st.header("🎓 Offline Training Metrics")
+    metadata_path = "api/models/model_metadata.json"
+    if os.path.exists(metadata_path):
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+        
+        models_meta = metadata.get("models", {})
+        col_m1, col_m2 = st.columns(2)
+        
+        with col_m1:
+            m = models_meta.get("A", {}).get("metrics", {})
+            st.subheader("Model A — Logistic Regression")
+            st.metric("Accuracy", f"{m.get('accuracy', 0):.2%}")
+            st.metric("F1 Score", f"{m.get('f1_score', 0):.4f}")
+            st.metric("ROC-AUC", f"{m.get('roc_auc', 0):.4f}")
+        
+        with col_m2:
+            m = models_meta.get("B", {}).get("metrics", {})
+            st.subheader("Model B — XGBoost")
+            st.metric("Accuracy", f"{m.get('accuracy', 0):.2%}")
+            st.metric("F1 Score", f"{m.get('f1_score', 0):.4f}")
+            st.metric("ROC-AUC", f"{m.get('roc_auc', 0):.4f}")
+        
+        st.caption(
+            f"Trained on {metadata.get('dataset', 'N/A')} — "
+            f"{metadata.get('num_train_samples', '?')} train samples, "
+            f"{metadata.get('num_test_samples', '?')} test samples"
+        )
+        st.markdown("---")
+    else:
+        st.info("Model metadata not found. Run train_models.py to generate metadata.")
+        st.markdown("---")
+
     # --- Sidebar ---
     with st.sidebar:
         st.header("Experiment Info")
@@ -243,11 +277,15 @@ def main() -> None:
                     p_val = test_data.get("p_value", None)
                     if p_val is not None:
                         st.metric("p-value", f"{p_val:.6f}")
+                    cohens_d = test_data.get("cohens_d", None)
+                    if cohens_d is not None:
+                        effect = test_data.get("effect_size_interpretation", "")
+                        st.metric("Cohen's d", f"{cohens_d:.4f}", delta=f"{effect} effect")
                 with col_s3:
                     if test_data.get("significant", False):
-                        st.error(f"✅ {test_data.get('interpretation', '')}")
+                        st.success(f"✅ {test_data.get('interpretation', '')}")
                     else:
-                        st.success(f"ℹ️ {test_data.get('interpretation', '')}")
+                        st.info(f"ℹ️ {test_data.get('interpretation', '')}")
                 st.markdown("---")
     else:
         st.warning(

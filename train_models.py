@@ -74,7 +74,6 @@ def train_and_save_models() -> None:
         max_depth=5,
         learning_rate=0.1,
         random_state=RANDOM_STATE,
-        use_label_encoder=False,
         eval_metric="logloss",
     )
     model_b.fit(X_train, y_train)

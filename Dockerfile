@@ -18,6 +18,7 @@ COPY analysis/ ./analysis/
 COPY tests/ ./tests/
 COPY scripts/ ./scripts/
 COPY train_models.py ./
+COPY pytest.ini ./
 
 RUN mkdir -p /app/data && chown -R appuser:appuser /app
 

@@ -176,7 +176,7 @@ class TestPredictEndpoint:
 
     def test_predict_single_feature(self, test_client):
         response = test_client.post("/predict", json={"features": [1.0]})
-        assert response.status_code == 200
+        assert response.status_code == 422
 
     def test_predict_negative_features(self, test_client, sample_features):
         negative = [-abs(x) for x in sample_features]

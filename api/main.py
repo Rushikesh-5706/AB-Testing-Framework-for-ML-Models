@@ -206,7 +206,11 @@ async def predict(request: PredictionRequest) -> PredictionResponse:
         prediction_probability = None
         if hasattr(model, "predict_proba"):
             probabilities = model.predict_proba(features_array)[0]
-            prediction_probability = float(max(probabilities))
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid input features: {str(exc)}",
+        ) from exc
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

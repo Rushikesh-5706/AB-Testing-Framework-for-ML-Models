@@ -212,9 +212,11 @@ The test suite covers three critical areas:
 
 | Test File | Coverage Area | Number of Tests |
 |-----------|--------------|-----------------|
-| `test_api.py` | API endpoints, validation, logging | 18 |
+| `test_api.py` | API endpoints, validation, logging, session stickiness | 30 |
 | `test_traffic_splitter.py` | Distribution accuracy, stickiness, edge cases | 16 |
 | `test_logging.py` | Schema, persistence, concurrency, error handling | 9 |
+| `test_analysis.py` | Metrics, statistical tests, recommendations | 23 |
+| **Total** | **Full system coverage** | **82** |
 
 Run the full suite:
 

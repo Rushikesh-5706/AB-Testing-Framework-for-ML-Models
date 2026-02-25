@@ -25,7 +25,7 @@ def db_manager():
     if os.path.exists(path):
         os.remove(path)
 
-
+@pytest.mark.unit
 class TestDatabaseManager:
     """Tests for the DatabaseManager logging mechanism."""
 

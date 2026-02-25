@@ -5,6 +5,7 @@ import pytest
 from api.traffic_splitter import TrafficSplitter
 
 
+@pytest.mark.unit
 class TestTrafficSplitter:
     """Tests for the TrafficSplitter class."""
 

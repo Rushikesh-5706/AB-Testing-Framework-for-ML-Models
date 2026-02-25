@@ -261,6 +261,24 @@ def main() -> None:
 
     st.markdown("---")
 
+    # --- Power Analysis & Sample Size ---
+    st.header("🔋 Power Analysis (Sample Size Check)")
+    min_samples = 384  # Standard simplified rule for 95% confidence, 5% margin of error
+    
+    col_p1, col_p2 = st.columns(2)
+    with col_p1:
+        st.metric("Required Samples per Variant", min_samples)
+    with col_p2:
+        current_min = min(len(df_a), len(df_b))
+        has_power = current_min >= min_samples
+        st.metric("Current Minimum Variant Samples", current_min, delta="Sufficient Power" if has_power else "Insufficient Power")
+    
+    if not has_power:
+        st.warning(f"⚠️ **Insufficient Data Validation:** You need at least {min_samples} samples per variant for reliable long-term statistical significance. Current minimum is {current_min}.")
+    else:
+        st.success(f"✅ **Sufficient Data Power:** Both variants have >{min_samples} samples. The statistical tests below are robust.")
+    st.markdown("---")
+
     # --- Statistical Significance ---
     st.header("📈 Statistical Significance Tests")
 
@@ -286,6 +304,10 @@ def main() -> None:
                         st.success(f"✅ {test_data.get('interpretation', '')}")
                     else:
                         st.info(f"ℹ️ {test_data.get('interpretation', '')}")
+                        
+                    ci = test_data.get("confidence_interval_95", None)
+                    if ci is not None:
+                        st.caption(f"**95% Confidence Interval (A - B):** [{ci[0]}, {ci[1]}]")
                 st.markdown("---")
     else:
         st.warning(

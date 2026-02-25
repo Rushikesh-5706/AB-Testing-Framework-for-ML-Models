@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, FastAPI, HTTPException, status
 
 from api.database import DatabaseManager
 from api.schemas import (
@@ -118,6 +118,27 @@ async def health_check() -> HealthResponse:
     )
 
 
+@app.get("/predictions/summary", tags=["Analysis"])
+async def get_predictions_summary() -> dict:
+    """Return the pre-computed A/B test analysis results."""
+    results_path = os.getenv("RESULTS_PATH", "analysis/results.json")
+    if os.path.exists(results_path):
+        with open(results_path, "r") as f:
+            return json.load(f)
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Analysis results not found. Please run the analysis pipeline first.",
+    )
+
+
+async def log_prediction_background(**kwargs) -> None:
+    """Background task to log predictions to SQLite."""
+    try:
+        await db.log_prediction(**kwargs)
+    except Exception:
+        logger.exception("Failed to log prediction %s", kwargs.get("request_id"))
+
+
 @app.get(
     "/experiment/config",
     response_model=ExperimentConfigResponse,
@@ -171,7 +192,9 @@ async def update_experiment_config(
 
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Predictions"])
-async def predict(request: PredictionRequest) -> PredictionResponse:
+async def predict(
+    request: PredictionRequest, background_tasks: BackgroundTasks
+) -> PredictionResponse:
     """Route a prediction request to a model variant and log the result.
 
     The traffic splitter assigns the request to Model A or Model B based on
@@ -220,18 +243,16 @@ async def predict(request: PredictionRequest) -> PredictionResponse:
     latency_ms = (time.perf_counter() - start_time) * 1000
     timestamp = time.strftime("%Y-%m-%dT%H:%M:%S")
 
-    try:
-        await db.log_prediction(
-            request_id=request_id,
-            timestamp=timestamp,
-            model_variant=variant,
-            input_features=json.dumps(request.features),
-            prediction=prediction,
-            prediction_probability=prediction_probability,
-            latency_ms=round(latency_ms, 3),
-        )
-    except Exception:
-        logger.exception("Failed to log prediction %s", request_id)
+    background_tasks.add_task(
+        log_prediction_background,
+        request_id=request_id,
+        timestamp=timestamp,
+        model_variant=variant,
+        input_features=json.dumps(request.features),
+        prediction=prediction,
+        prediction_probability=prediction_probability,
+        latency_ms=round(latency_ms, 3),
+    )
 
     return PredictionResponse(
         request_id=request_id,
@@ -249,6 +270,7 @@ async def predict(request: PredictionRequest) -> PredictionResponse:
 )
 async def predict_batch(
     batch_request: BatchPredictionRequest,
+    background_tasks: BackgroundTasks
 ) -> BatchPredictionResponse:
     """Process a batch of prediction requests.
 
@@ -265,7 +287,7 @@ async def predict_batch(
     predictions = []
 
     for single_request in batch_request.requests:
-        result = await predict(single_request)
+        result = await predict(single_request, background_tasks)
         predictions.append(result)
 
     total_latency_ms = (time.perf_counter() - batch_start) * 1000

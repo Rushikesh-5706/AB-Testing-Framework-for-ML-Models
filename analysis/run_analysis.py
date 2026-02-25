@@ -116,12 +116,28 @@ def run_statistical_tests(df: pd.DataFrame) -> dict:
         (df_a["latency_ms"].mean() - df_b["latency_ms"].mean()) / pooled_std_lat
         if pooled_std_lat > 0 else 0.0
     )
+    
+    # 95% Confidence Interval for diff in means (Model A - Model B)
+    var_a, var_b = df_a["latency_ms"].var(ddof=1), df_b["latency_ms"].var(ddof=1)
+    n_a, n_b = len(df_a), len(df_b)
+    se = np.sqrt(var_a/n_a + var_b/n_b)
+    if se > 0:
+        df_welch = (var_a/n_a + var_b/n_b)**2 / ((var_a**2)/(n_a**2*(n_a-1)) + (var_b**2)/(n_b**2*(n_b-1)) + 1e-9)
+        t_crit = stats.t.ppf(1 - SIGNIFICANCE_LEVEL/2, df_welch)
+        margin_err = t_crit * se
+        mean_diff = df_a["latency_ms"].mean() - df_b["latency_ms"].mean()
+        ci_lower = round(float(mean_diff - margin_err), 4)
+        ci_upper = round(float(mean_diff + margin_err), 4)
+    else:
+        ci_lower, ci_upper = 0.0, 0.0
+
     results["latency_ttest"] = {
         "test": "Welch's t-test",
         "metric": "latency_ms",
         "t_statistic": round(float(t_stat), 4),
         "p_value": round(float(p_value), 6),
         "cohens_d": round(float(cohens_d_lat), 4),
+        "confidence_interval_95": [ci_lower, ci_upper],
         "effect_size_interpretation": (
             "large" if abs(cohens_d_lat) >= 0.8
             else "medium" if abs(cohens_d_lat) >= 0.5

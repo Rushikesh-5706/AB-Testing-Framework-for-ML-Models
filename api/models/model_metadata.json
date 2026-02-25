@@ -1,0 +1,73 @@
+{
+  "dataset": "Breast Cancer Wisconsin (sklearn built-in)",
+  "num_features": 30,
+  "feature_names": [
+    "mean radius",
+    "mean texture",
+    "mean perimeter",
+    "mean area",
+    "mean smoothness",
+    "mean compactness",
+    "mean concavity",
+    "mean concave points",
+    "mean symmetry",
+    "mean fractal dimension",
+    "radius error",
+    "texture error",
+    "perimeter error",
+    "area error",
+    "smoothness error",
+    "compactness error",
+    "concavity error",
+    "concave points error",
+    "symmetry error",
+    "fractal dimension error",
+    "worst radius",
+    "worst texture",
+    "worst perimeter",
+    "worst area",
+    "worst smoothness",
+    "worst compactness",
+    "worst concavity",
+    "worst concave points",
+    "worst symmetry",
+    "worst fractal dimension"
+  ],
+  "num_train_samples": 455,
+  "num_test_samples": 114,
+  "target_classes": [
+    "malignant (0)",
+    "benign (1)"
+  ],
+  "random_state": 42,
+  "models": {
+    "A": {
+      "name": "Logistic Regression",
+      "description": "L2-regularized logistic regression with StandardScaler preprocessing",
+      "hyperparameters": {
+        "C": 1.0,
+        "solver": "lbfgs",
+        "max_iter": 1000
+      },
+      "metrics": {
+        "accuracy": 0.9825,
+        "f1_score": 0.9861,
+        "roc_auc": 0.9954
+      }
+    },
+    "B": {
+      "name": "XGBoost",
+      "description": "Gradient-boosted decision tree ensemble classifier",
+      "hyperparameters": {
+        "n_estimators": 100,
+        "max_depth": 5,
+        "learning_rate": 0.1
+      },
+      "metrics": {
+        "accuracy": 0.9474,
+        "f1_score": 0.9589,
+        "roc_auc": 0.9924
+      }
+    }
+  }
+}

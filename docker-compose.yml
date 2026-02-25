@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ab-testing-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./api/models:/app/api/models
+    environment:
+      - DATABASE_NAME=/app/data/ab_test_logs.db
+      - MODEL_A_PATH=/app/api/models/model_A.pkl
+      - MODEL_B_PATH=/app/api/models/model_B.pkl
+      - MODEL_A_RATIO=0.5
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ab-testing-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./analysis:/app/analysis
+    environment:
+      - DATABASE_NAME=/app/data/ab_test_logs.db
+      - RESULTS_PATH=/app/analysis/results.json
+    command: [ "streamlit", "run", "analysis/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true" ]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,28 @@
+setup:
+  - echo "Installing Python dependencies..."
+  - pip install -r api/requirements.txt
+  - echo "Training ML models..."
+  - python train_models.py
+  - echo "Building Docker images..."
+  - docker-compose build
+
+deploy:
+  - echo "Starting services with Docker Compose..."
+  - docker-compose up -d
+  - echo "Waiting for API to become healthy..."
+  - sleep 10
+  - echo "Verifying API health..."
+  - curl -s http://localhost:8000/health | python -m json.tool
+
+test:
+  - echo "Running automated test suite..."
+  - pytest tests/ -v --tb=short
+  - echo "All tests passed."
+
+analyze:
+  - echo "Simulating traffic (500 requests)..."
+  - python scripts/simulate_traffic.py --num-requests 500 --delay-ms 5
+  - echo "Running analysis pipeline..."
+  - python analysis/run_analysis.py
+  - echo "Analysis complete. Results saved to analysis/results.json"
+  - echo "Dashboard is accessible at http://localhost:8501"
